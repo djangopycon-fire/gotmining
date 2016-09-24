@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'css/got_match_list.css' %}">
+{% endblock %}
+
+{% block js_block %}
+
+    <script type='text/javascript'>
+        $(document).ready(function()
+        {   
+            //alert('inside document');
+            $('#search_data').unbind('submit').submit(function(event)
+            {   
+                event.preventDefault();
+                var form_data=$('#search_data').serializeArray();
+                //alert(form_data);
+                form_data = JSON.stringify(form_data);
+                //alert( form_data)
+                $.ajax(
+                {
+                    url:'/got/search/',
+                    type:'post',
+                    data:{form_data:form_data},
+                    success: function(data)
+                    {
+                        //alert(data);
+                        //alert("Response returned successfully");
+                        if(data.length==0){
+                            var html_div="<div class='well' style='margin-top:30px;width:100%;font-weight:20px;'>No Profile matching</div>"
+                        }
+                        else
+                        {
+                            var html_div="<div><table  style='width:500px;margin-left:300px;margin-top:-10px;' class='table'><thead><tr><th>Name of the Battle</th><th>Year</th><th>Battle Number</th><th>Atttacker King<br/></th><th >Defender King</th><th>Battle Type<br/></th><th>Location</th><th>Attacker Size</th><th>Defender Size</th><th></th></tr></thead>";
+                        //alert(data);
+                      
+
+                            for(i=0;i<data.length;i++)
+                            {
+                               html_div += "<tbody><tr class='searchable'><td>" + data[i][0] + "</td><td>" + data[i][1] + "</td><td>" + data[i][2] + "</a> </td><td>" + data[i][3] + "</td><td>" + data[i][4] + "</td><td>" + data[i][5] + "</td><td>"+ data[i][6]+ "</td><td>"+ data[i][7]+"</td><td>"+ data[i][8]+"</td></td></tr></tbody";
+                            }
+                        }
+
+
+
+                       //alert("loop executed successfully");
+
+                        html_div+= "</table></div>";
+                        //alert("Before adding form_data to html");
+                        $('#form_data').html(html_div);
+                        //alert("After adding form_data");
+                        
+
+                    }
+                });
+          
+            });
+
+            // hiding table row on matching
+
+            $('input.filter').on('keyup', function() {
+                var rex = new RegExp($(this).val(), 'i');
+                $('.searchable ').hide();
+                $('.searchable').filter(function() {
+                    return rex.test($(this).text());
+                    }).show();
+                });
+            
+        }); 
+    </script>
+{% endblock %}
+
+
+{% block center_block %}
+    
+    <div class="col-md-3 input-group pull-right form-group" >
+        <span class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></span>
+        <input type="text" class="filter form-control" placeholder="What you looking for?">
+    </div>
+
+     <h4 style="color:orange;text-decoration:underline;">List Game of Thrones battles</h4>
+    <div class="container matching_profile_container">
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="matching_profile_wrapper">
+                    <form method="get" id='search_data' action="#" enctype="multipart/form-data"  class="well form-horizontal " role="form">
+                        {% csrf_token %} 
+                           
+                         {% for field in form.visible_fields %}
+                            <div class="form-group{% if field.errors %} has-error{% endif %}">
+                              <label for="{{ field.label }}">{{ field.label }}</label><br/>
+                               {{ field }}
+                              {% if field.help_text %}
+                                <span class="help-block">{{ field.help_text|safe }}</span>
+                              {% endif %}
+                              {% for error in field.errors %}
+                                <label class="control-label">{{ error }}</label>
+                              {% endfor %}
+                            </div>
+                          {% endfor %}
+
+
+                        <div class="form-group">
+                           <button type="submit" class="btn btn-warning btn-apply-filter">Apply Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    
+        <div class="col-md-8" id="form_data"></div>
+    </div>
+    </div>
+
+            
+{% endblock %}
